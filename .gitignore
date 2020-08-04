@@ -1,0 +1,8 @@
+.idea/
+__pycache__/
+cogs/__pycache__/
+events/__pycache__/
+custom/__pycache__/
+premium/
+data/db/database.db
+.env
