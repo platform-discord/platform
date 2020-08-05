@@ -80,7 +80,7 @@ class Notes(Cog):
         else:
             user_reply = wait_for_reply.content.lower()
             if user_reply == "off":
-                check_if_in_db = db.field(f"SELECT reminder FROM user_notes WHERE user_id = {ctx.author.id}")
+                check_if_in_db = db.field(f"SELECT reminder FROM user_notes WHERE user_id = ?", ctx.author.id)
                 if check_if_in_db is None:
                     return await ctx.send("You do not have reminders on.")
                 db.execute(f"UPDATE user_notes SET reminder = ? WHERE user_id = ?", None, ctx.author.id)
@@ -100,7 +100,7 @@ class Notes(Cog):
         self.prefix = utils.get_guild_prefix(ctx.guild.id)
         if note is None:
             return await ctx.send("You must provide something to put into your notes.")
-        is_user_in_db = db.field(f"SELECT user_id FROM user_notes WHERE user_id = {ctx.author.id}")
+        is_user_in_db = db.field(f"SELECT user_id FROM user_notes WHERE user_id = ?", ctx.author.id)
 
         if is_user_in_db is None:
             db.execute(f"INSERT INTO user_notes(user_id) VALUES(?)", ctx.author.id)
@@ -110,7 +110,7 @@ class Notes(Cog):
             except Exception:
                 return await ctx.send(f"You do not have a free slot in your notes. Do `{self.prefix}notes remove` to free some space.")
             else:
-                db.execute(f"UPDATE user_notes SET {free_note_slot} = ? WHERE user_id = ?", note, ctx.author.id)
+                db.execute(f"UPDATE user_notes SET ? = ? WHERE user_id = ?", free_note_slot, note, ctx.author.id)
                 db.commit()
                 return await ctx.send(f"Your note has been saved. Do `{self.prefix}notes view` to view all of your current notes.")
 
@@ -119,7 +119,7 @@ class Notes(Cog):
         except Exception:
             return await ctx.send(f"You do not have a free slot in your notes. Do `{self.prefix}notes remove` to free some space.")
         else:
-            db.execute(f"UPDATE user_notes SET {free_note_slot} = ? WHERE user_id = ?", note, ctx.author.id)
+            db.execute(f"UPDATE user_notes SET ? = ? WHERE user_id = ?", free_note_slot, note, ctx.author.id)
             db.commit()
             await ctx.send(f"Your note has been saved. Do `{self.prefix}notes view` to view all of your current notes.")
 
@@ -144,9 +144,9 @@ class Notes(Cog):
     @utility_notes.command(name="view")
     async def utility_notes_view(self, ctx):
         self.prefix = utils.get_guild_prefix(ctx.guild.id)
-        note_one = db.field(f"SELECT note_one FROM user_notes WHERE user_id = {ctx.author.id}")
-        note_two = db.field(f"SELECT note_two FROM user_notes WHERE user_id = {ctx.author.id}")
-        note_three = db.field(f"SELECT note_three FROM user_notes WHERE user_id = {ctx.author.id}")
+        note_one = db.field(f"SELECT note_one FROM user_notes WHERE user_id = ?", ctx.author.id)
+        note_two = db.field(f"SELECT note_two FROM user_notes WHERE user_id = ?", ctx.author.id)
+        note_three = db.field(f"SELECT note_three FROM user_notes WHERE user_id = ?", ctx.author.id)
         notes = f"""
         Note One:
         ```

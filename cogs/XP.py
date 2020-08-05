@@ -17,22 +17,23 @@ class XP(Cog):
     async def on_message(self, message):
         author = message.author
         guild = message.guild
-        is_guild_enabled = db.field(f"SELECT enabled FROM guild_rank_settings WHERE guild_id = {guild.id}")
+        is_guild_enabled = db.field(f"SELECT enabled FROM guild_rank_settings WHERE guild_id = ?", guild.id)
         if is_guild_enabled is None or 0: return
         if author.bot: return
         xp_to_add = randint(15, 50)
         xp_lock = int(time.time() + randint(60, 90))
-        is_user_in_db = db.record(f"SELECT * FROM guild_ranks WHERE guild_id = {guild.id} AND member_id = {author.id}")
+        is_user_in_db = db.record(f"SELECT * FROM guild_ranks WHERE guild_id = ? AND member_id = ?", guild.id, author.id)
 
         if is_user_in_db is None:
-            db.execute(f"INSERT INTO guild_ranks VALUES({guild.id}, {author.id}, {xp_to_add}, 0, {xp_lock})")
+            db.execute(f"INSERT INTO guild_ranks VALUES(?, ?, ?, ?)",
+                       guild.id, author.id, xp_to_add, 0, xp_lock)
             db.commit()
             return
 
-        current_xp = db.field(f"SELECT xp FROM guild_ranks WHERE guild_id = {guild.id} AND member_id = {author.id}")
-        current_level = db.field(f"SELECT level FROM guild_ranks WHERE guild_id = {guild.id} AND member_id = {author.id}")
+        current_xp = db.field(f"SELECT xp FROM guild_ranks WHERE guild_id = ? AND member_id = ?", guild.id, author.id)
+        current_level = db.field(f"SELECT level FROM guild_ranks WHERE guild_id = ? AND member_id = ?", guild.id, author.id)
         new_lvl = int(((current_xp + xp_to_add) // 42) ** 0.55)
-        get_member_time_lock = db.field(f"SELECT xp_lock FROM guild_ranks WHERE guild_id = {guild.id} AND member_id = {author.id}")
+        get_member_time_lock = db.field(f"SELECT xp_lock FROM guild_ranks WHERE guild_id = ? AND member_id = ?", guild.id, author.id)
 
         if int(time.time()) < get_member_time_lock:
             return
@@ -42,7 +43,7 @@ class XP(Cog):
         db.commit()
 
         if new_lvl > current_level:
-            lvl_up_channel_id = db.field(f"SELECT channel_id FROM guild_rank_settings WHERE guild_id = {guild.id}")
+            lvl_up_channel_id = db.field(f"SELECT channel_id FROM guild_rank_settings WHERE guild_id = ?", guild.id)
             if lvl_up_channel_id is None: return
             level_up_message = utils.embed_message(title="Level Up!",
                                                    message=f"{author.mention} has just leveled up to level {new_lvl}!",
@@ -57,8 +58,8 @@ class XP(Cog):
         if is_guild_enabled is None or 0: return
         if member == None:
             member = ctx.author
-        current_xp = db.field(f"SELECT xp FROM guild_ranks WHERE guild_id = {ctx.guild.id} AND member_id = {member.id}")
-        current_level = db.field(f"SELECT level FROM guild_ranks WHERE guild_id = {ctx.guild.id} AND member_id = {member.id}")
+        current_xp = db.field(f"SELECT xp FROM guild_ranks WHERE guild_id = ? AND member_id = ?", ctx.guild.id, member.id)
+        current_level = db.field(f"SELECT level FROM guild_ranks WHERE guild_id = ? AND member_id = ?", ctx.guild.id, member.id)
         message = utils.embed_message(title=f"{member}'s Level",
                                       message="**Current XP:**\n" +
                                               f"{current_xp}\n" +
@@ -100,12 +101,12 @@ class XP(Cog):
                 if not user_reply == "yes":
                     return await ctx.send("Ok, won't reset")
                 elif user_reply == "yes":
-                    db.execute(f"DELETE FROM guild_rank_settings WHERE guild_id = {ctx.guild.id}")
+                    db.execute(f"DELETE FROM guild_rank_settings WHERE guild_id = ?", ctx.guild.id)
                     db.commit()
                     return await ctx.send("✔ Successfully reset your level up messages channel")
-        is_channel_already_set = db.field(f"SELECT channel_id FROM guild_rank_settings WHERE guild_id = {ctx.guild.id}")
+        is_channel_already_set = db.field(f"SELECT channel_id FROM guild_rank_settings WHERE guild_id = ?", ctx.guild.id)
         if is_channel_already_set is not None:
-            db.execute(f"UPDATE guild_rank_settings SET channel_id = {channel.id} WHERE guild_id = {ctx.guild.id}")
+            db.execute(f"UPDATE guild_rank_settings SET channel_id = ? WHERE guild_id = ?", channel.id, ctx.guild.id)
             db.commit()
             return await ctx.send(f"✔ Successfully updated your level up messages to go to {channel.mention}")
         db.execute(f"INSERT INTO guild_rank_settings(guild_id, channel_id, enabled) VALUES(?, ?, ?)", ctx.guild.id, channel.id, 1)
@@ -115,7 +116,7 @@ class XP(Cog):
     @rank_xp.command(name="reset")
     @has_permissions(manage_guild=True)
     async def rank_xp_reset(self, ctx):
-        is_guild_enabled = db.field(f"SELECT enabled FROM guild_rank_settings WHERE guild_id = {ctx.guild.id}")
+        is_guild_enabled = db.field(f"SELECT enabled FROM guild_rank_settings WHERE guild_id = ?", ctx.guild.id)
         if is_guild_enabled is None or 0: return
         await ctx.send("Are you sure you want to reset everyone's level?")
         try:
@@ -129,7 +130,7 @@ class XP(Cog):
             if not user_reply == "yes":
                 return await ctx.send("Ok, won't reset")
             elif user_reply == "yes":
-                db.execute(f"DELETE FROM guild_ranks WHERE guild_id = {ctx.guild.id}")
+                db.execute(f"DELETE FROM guild_ranks WHERE guild_id = ?", ctx.guild.id)
                 db.commit()
                 return await ctx.send("✔ Successfully reset everyone's xp.")
 

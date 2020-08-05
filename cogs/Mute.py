@@ -172,9 +172,9 @@ class Mute(Cog):
                                               footer_text=f"Unmuted by: {ctx.author}")
 
         get_user_muted_field = db.record(
-            f"SELECT * FROM guild_mutes WHERE user_id = {member.id} AND guild_id = {ctx.guild.id}")
+            f"SELECT * FROM guild_mutes WHERE user_id = ? AND guild_id = ?", member.id, ctx.guild.id)
         if get_user_muted_field is None:
-            mute_role_id = db.field(f"SELECT mute_role FROM guild_settings WHERE guild_id = {ctx.guild.id}")
+            mute_role_id = db.field(f"SELECT mute_role FROM guild_settings WHERE guild_id = ?", ctx.guild.id)
             if mute_role_id is None:
                 message = utils.embed_message(message="❌ You do not have a mute role setup in this guild.",
                                               footer_icon=self.bot.user.avatar_url,
@@ -190,9 +190,9 @@ class Mute(Cog):
                                               footer_text=utils.random_message())
                 return await ctx.send(embed=message)
         elif get_user_muted_field is not None:
-            mute_role_id = db.field(f"SELECT mute_role FROM guild_settings WHERE guild_id = {ctx.guild.id}")
+            mute_role_id = db.field(f"SELECT mute_role FROM guild_settings WHERE guild_id = ?", ctx.guild.id)
             mute_role = ctx.guild.get_role(mute_role_id)
-            db.execute(F"DELETE FROM guild_mutes WHERE guild_id = {ctx.guild.id} AND user_id = {member.id}")
+            db.execute(F"DELETE FROM guild_mutes WHERE guild_id = ? AND user_id = ?", ctx.guild.id, member.id)
             db.commit()
             await member.remove_roles(mute_role, reason=f"Unmuted by -> {ctx.author}")
             await ctx.send(embed=success_message)
@@ -227,7 +227,7 @@ class Mute(Cog):
                     return await ctx.send("Won't be setting any roles!")
                 elif reply.startswith("y"):
                     await ctx.send("Setting permissions for that role now.")
-                    db.execute(f"UPDATE guild_settings SET mute_role = {role.id} WHERE guild_id = {ctx.guild.id}")
+                    db.execute(f"UPDATE guild_settings SET mute_role = ? WHERE guild_id = ?", role.id, ctx.guild.id)
                     db.commit()
                     for channel in ctx.guild.text_channels:
                         await channel.set_permissions(role, send_messages=False)
@@ -250,7 +250,7 @@ class Mute(Cog):
                     return await ctx.send("Won't be setting any roles!")
                 elif reply.startswith("y"):
                     await ctx.send("Setting permissions for that role now.")
-                    db.execute(f"UPDATE guild_settings SET mute_role = {role.id} WHERE guild_id = {ctx.guild.id}")
+                    db.execute(f"UPDATE guild_settings SET mute_role = ? WHERE guild_id = ?", role.id, ctx.guild.id)
                     db.commit()
                     for channel in ctx.guild.text_channels:
                         await channel.set_permissions(role, send_messages=False)

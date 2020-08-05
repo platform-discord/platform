@@ -41,7 +41,7 @@ class Verification(Cog):
                                                    footer_text="| " + ctx.guild.name)
 
         # Check if the guild is in the database.
-        guild_in_db_already = db.field(f"SELECT guild_id FROM guild_verification WHERE guild_id = {ctx.guild.id}")
+        guild_in_db_already = db.field(f"SELECT guild_id FROM guild_verification WHERE guild_id = ?", ctx.guild.id)
         if guild_in_db_already is not None:
             await ctx.send(
                 "Are you sure you would like to update your verification? This will stop your current one from working.")
@@ -61,7 +61,7 @@ class Verification(Cog):
                     await message.add_reaction("\N{OK HAND SIGN}")
                     role = await utils.find_roles(ctx.guild, role)
                     db.execute(
-                        f"UPDATE guild_verification SET message_id = {message.id}, role_id = {role.id} WHERE guild_id = {ctx.guild.id}")
+                        f"UPDATE guild_verification SET message_id = ?, role_id = ? WHERE guild_id = ?", message.id, role.id, ctx.guild.id)
                     db.commit()
                     success_message = utils.embed_message(title="Success!",
                                                           message=f"Successfully updated your verification Channel/Role to {channel.mention}/{role.mention}",
@@ -98,7 +98,7 @@ class Verification(Cog):
             if not user_reply.startswith("y"):
                 return await ctx.send("Okay, won't reset your verification.")
             elif user_reply.startswith("y"):
-                is_guild_in_db = db.field(f"SELECT * FROM guild_verification WHERE guild_id = {ctx.guild.id}")
+                is_guild_in_db = db.field(f"SELECT * FROM guild_verification WHERE guild_id = ?", ctx.guild.id)
                 if is_guild_in_db is None:
                     message = utils.embed_message(title="Error!",
                                                   message="This server is not in the database for verification.",

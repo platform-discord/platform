@@ -27,7 +27,7 @@ class NicknameManagement(Cog):
                                           footer_icon=self.bot.user.avatar_url,
                                           footer_text=utils.random_message())
             return await ctx.send(embed=message)
-        check_if_in_db = db.field(f"SELECT member_id FROM guild_nick_bans WHERE guild_id = {ctx.guild.id}")
+        check_if_in_db = db.field(f"SELECT member_id FROM guild_nick_bans WHERE guild_id = ?", ctx.guild.id)
         if check_if_in_db is not None:
             return await ctx.send("❌ That user is already nickbanned.")
         db.execute(f"INSERT INTO guild_nick_bans(guild_id, member_id) VALUES(?, ?)", ctx.guild.id, member.id)

@@ -28,15 +28,15 @@ class ReportSystem(Cog):
     @has_permissions(manage_guild=True)
     async def report_system_setup(self, ctx, channel: TextChannel):
         self.prefix = utils.get_guild_prefix(ctx.guild.id)
-        check_if_in_db = db.field(f"SELECT * FROM guild_reports WHERE guild_id = {ctx.guild.id}")
+        check_if_in_db = db.field(f"SELECT * FROM guild_reports WHERE guild_id = ?", ctx.guild.id)
 
         if check_if_in_db is not None:
-            db.execute(f"UPDATE guild_reports SET channel_id = {channel.id} WHERE guild_id = {ctx.guild.id}")
+            db.execute(f"UPDATE guild_reports SET channel_id = ? WHERE guild_id = ?", channel.id, ctx.guild.id)
             db.commit()
             utils.log(f"Updated a guild in the reports table.")
             return await ctx.send(f"✅ {channel.mention} is now your channel for reports to go to.")
 
-        db.execute(f"INSERT INTO guild_reports(guild_id, channel_id) VALUES({ctx.guild.id}, {channel.id})")
+        db.execute(f"INSERT INTO guild_reports(guild_id, channel_id) VALUES(?, ?)", ctx.guild.id, channel.id)
         db.commit()
         utils.log(f"Added new guild to the reports table.")
         return await ctx.send(f"✅ {channel.mention} is now your channel for reports to go to.")
@@ -45,10 +45,10 @@ class ReportSystem(Cog):
     @has_permissions(manage_guild=True)
     async def report_system_reset(self, ctx):
         self.prefix = utils.get_guild_prefix(ctx.guild.id)
-        check_if_in_db = db.field(f"SELECT * FROM guild_reports WHERE guild_id = {ctx.guild.id}")
+        check_if_in_db = db.field(f"SELECT * FROM guild_reports WHERE guild_id = ?", ctx.guild.id)
         if check_if_in_db is None:
             return await ctx.send("❌ You do not have a reports channel set for this guild")
-        db.execute(f"DELETE FROM guild_reports WHERE guild_id = {ctx.guild.id}")
+        db.execute(f"DELETE FROM guild_reports WHERE guild_id = ?", ctx.guild.id)
         db.commit()
         utils.log("Removed guild from the reports table.")
         return await ctx.send("✅ Successfully reset the set reports channel.")
@@ -56,7 +56,7 @@ class ReportSystem(Cog):
     @command(name="report")
     async def reports_system_report(self, ctx, member: Optional[Member], reason: str):
         self.prefix = utils.get_guild_prefix(ctx.guild.id)
-        get_reports_channel = db.field(f"SELECT channel_id FROM guild_reports WHERE guild_id = {ctx.guild.id}")
+        get_reports_channel = db.field(f"SELECT channel_id FROM guild_reports WHERE guild_id = ?", ctx.guild.id)
         if get_reports_channel is None:
             return await ctx.send("❌ There is no reports channel set in this guild.\n" +
                                   f"Get the administrator to run `{self.prefix}reports setup`.", delete_after=4)

@@ -34,7 +34,7 @@ class Welcoming(Cog):
     async def management_welcoming_channel(self, ctx, channel: TextChannel = None):
         if channel is None:
             return await ctx.send("You must provide a channel for messages to go to.")
-        check_if_in_db = db.field(f"SELECT guild_id FROM guild_welcome WHERE guild_id = {ctx.guild.id}")
+        check_if_in_db = db.field(f"SELECT guild_id FROM guild_welcome WHERE guild_id = ?", ctx.guild.id)
         if check_if_in_db is None:
             db.execute(f"INSERT INTO guild_welcome(guild_id, welcome_channel_id) VALUES(?, ?)", ctx.guild.id, channel.id)
             db.commit()
@@ -50,7 +50,7 @@ class Welcoming(Cog):
         self.prefix = utils.get_guild_prefix(ctx.guild.id)
         if welcome_message is None:
             return await ctx.send("Your welcome message can't be nothing.")
-        check_if_in_db = db.field(f"SELECT guild_id FROM guild_welcome WHERE guild_id = {ctx.guild.id}")
+        check_if_in_db = db.field(f"SELECT guild_id FROM guild_welcome WHERE guild_id = ?", ctx.guild.id)
         if check_if_in_db is None:
             db.execute(f"INSERT INTO guild_welcome(guild_id, welcome_message) VALUES(?, ?)", ctx.guild.id, welcome_message)
             db.commit()
@@ -74,7 +74,7 @@ class Welcoming(Cog):
         else:
             user_reply = wait_for_user_reply.content.lower()
             if user_reply == "yes":
-                db.execute(f"DELETE FROM guild_welcome WHERE guild_id = {ctx.guild.id}")
+                db.execute(f"DELETE FROM guild_welcome WHERE guild_id = ?", ctx.guild.id)
                 db.commit()
                 await ctx.send("Successfully reset your settings.")
             else:
