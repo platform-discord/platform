@@ -2,7 +2,7 @@ import os
 import asyncio
 
 from decouple import config
-from discord import Game, Status
+from discord import Game, Status, AllowedMentions
 from discord.ext import tasks
 from discord.ext.commands import AutoShardedBot
 
@@ -23,7 +23,8 @@ bot = AutoShardedBot(
     activity=Game(name="Connecting..."),
     command_prefix=utils.get_prefix,
     case_insensitive=True,
-    max_messages=100
+    max_messages=100,
+    allowed_mentions=AllowedMentions(everyone=False)
 )
 bot.remove_command("help")
 bot.owner_ids = {
