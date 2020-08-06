@@ -15,7 +15,8 @@ class PersistentMutes(Cog):
         if is_guild_in_db is None:
             return
 
-        check_if_user_muted_in_guild = db.field(f"SELECT user_id FROM guild_mutes WHERE guild_id = {member.guild.id}")
+        check_if_user_muted_in_guild = db.field(f"SELECT user_id FROM guild_mutes WHERE guild_id = ? AND user_id = ?",
+                                                member.guild.id, member.id)
         if check_if_user_muted_in_guild is None:
             return
 
