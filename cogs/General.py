@@ -1,3 +1,5 @@
+import os
+
 from aiohttp import request
 from discord import Member, Embed
 from discord.colour import Colour
@@ -7,6 +9,8 @@ from discord.ext.commands import command
 from random import randint
 
 from utils import basic_utilties as utils
+
+import psutil
 
 class General(Cog):
     def __init__(self, bot):
@@ -72,6 +76,30 @@ class General(Cog):
                                       thumbnail=image)
         await ctx.send(embed=message)
 
+    @command(name="info", aliases=["about"])
+    async def get_info(self, ctx):
+        """Get information on the bot"""
+        invite_link = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot"
+        cpu_percentage = psutil.cpu_percent()
+        mem_used = (psutil.virtual_memory().total - psutil.virtual_memory().available) / 1000000
+        total_mem = psutil.virtual_memory().total / 1000000
+        prefix = utils.get_guild_prefix(ctx.guild.id)
+        
+        embed = utils.embed_message(title="Info about Platform",
+                                    message=f"If you need help with a category do `{prefix}help`",
+                                    footer_icon=ctx.guild.icon_url)
+        embed.add_field(name="Invite the bot", value=f"[Here]({invite_link})")
+        embed.add_field(name="GitHub", value=f"[Here](https://github.com/platform-discord/platform)")
+        embed.add_field(name="Support server", value=f"[Here](https://discord.gg/tKZbxAF)")
+        embed.add_field(name="Ping", value=f"{round(self.bot.latency * 1000)} ms")
+        embed.add_field(name="Memory", value=f"{round(mem_used)} MB / {int(total_mem)} MB")
+        embed.add_field(name="CPU", value=f"{cpu_percentage}%")
+        embed.add_field(name="Creator", value=f"kal#1806")
+        embed.add_field(name="Currently in", value=f"{len(self.bot.guilds)} servers")
+        embed.add_field(name="Current prefix", value=f"{prefix}")
+
+        
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(General(bot))
